@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context=".MainActivity">
+
+        <SurfaceView
+            android:id="@+id/surface_view"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_marginTop="100dp" />
+
+        <TextView
+            android:id="@+id/barcode_text"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="50dp"
+            android:padding="5dp"
+            android:text="Barcode Text"
+            android:textAlignment="center"
+            android:textSize="25sp" />
+
+        <RadioGroup
+            android:id="@+id/radioGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <!-- RadioButton for "Allow" option -->
+            <RadioButton
+                android:id="@+id/allowDuplicate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Allow Duplicates" />
+
+            <!-- RadioButton for "Disallow" option -->
+            <RadioButton
+                android:id="@+id/disAllowDuplicate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Dis-Allow Duplicates" />
+        </RadioGroup>
+
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="50dp"
+            android:enabled="false"
+            android:id="@+id/btnNext"
+            android:text="Next" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Software By: Pandit Dhavale, 9422412712, 9922997664"
+            android:gravity="center"
+            android:layout_marginTop="10dp"
+            />
+
+    </LinearLayout>
+</ScrollView>
