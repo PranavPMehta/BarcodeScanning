@@ -76,6 +76,14 @@
             android:id="@+id/newScan"
             android:text="Next Scan" />
 
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:id="@+id/csvCheckBox"
+            android:text="Generate CSV File"
+            android:checked="true"/>
+
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

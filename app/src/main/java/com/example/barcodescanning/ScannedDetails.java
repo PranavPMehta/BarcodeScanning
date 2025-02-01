@@ -14,6 +14,7 @@ import android.os.Environment;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -24,17 +25,28 @@ import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static android.util.JsonToken.STRING;
 import static com.example.barcodescanning.MainActivity.allowDuplicates;
 import static com.example.barcodescanning.MainActivity.disAllowDuplicates;
+import static java.sql.Types.BOOLEAN;
+import static java.sql.Types.NUMERIC;
 
 public class ScannedDetails extends AppCompatActivity {
 
@@ -43,6 +55,7 @@ public class ScannedDetails extends AppCompatActivity {
     public static ArrayList<String> netBarcodeNos = new ArrayList<String>();
     Button nextScanBtn,clearBtn,exportBtn;
     TextView barcodeNetWeightTxtView, totalWeightTxtView;
+    CheckBox csvCheckBox;
 
     String barcodeNo;
     AlertDialog.Builder builder;
@@ -55,6 +68,7 @@ public class ScannedDetails extends AppCompatActivity {
         nextScanBtn=findViewById(R.id.newScan);
         clearBtn=findViewById(R.id.clearBtn);
         exportBtn=findViewById(R.id.exportBtn);
+        csvCheckBox=findViewById(R.id.csvCheckBox);
         barcodeNetWeightTxtView=findViewById(R.id.barcodeNetWeight);
         totalWeightTxtView=findViewById(R.id.totalWeightTxtView);
 
@@ -62,7 +76,8 @@ public class ScannedDetails extends AppCompatActivity {
 
         Intent intent = getIntent();
         barcodeNo=intent.getStringExtra("barcodeNetWeight");
-//        barcodeNo="0S5.6-1904";
+//        barcodeNo="AS5.27-1521";
+//        barcodeNo="AS5.26-1420";
         int len=barcodeNo.length();
         try{
             if(!Character.isLetter(barcodeNo.charAt(0))){
@@ -134,23 +149,23 @@ public class ScannedDetails extends AppCompatActivity {
                             if (!userInput.isEmpty()) {
                                 // Handle saving the input (e.g., saving it in SharedPreferences, database, etc.)
                                 Toast.makeText(ScannedDetails.this, "Saved: " + userInput, Toast.LENGTH_SHORT).show();
-                                File filePath;
+                                File filePath,csvFile=null;
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                                     filePath = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), userInput+".xls");
+                                    if(csvCheckBox.isChecked()){
+                                        csvFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), userInput+".csv");
+                                    }
                                 }else{
                                     filePath = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/" + userInput + ".xls");
+                                    if(csvCheckBox.isChecked()){
+                                        csvFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + "/" + userInput + ".csv");
+                                    }
                                 }
 
                                 try {
 
                                     if (!filePath.exists()) {
                                         HSSFWorkbook hssfWorkbook = new HSSFWorkbook();
-//                                        HSSFSheet hssfSheet = hssfWorkbook.createSheet("MySheet");
-//
-//                                        HSSFRow hssfRow = hssfSheet.createRow(0);
-//                                        HSSFCell hssfCell = hssfRow.createCell(0);
-//
-//                                        hssfCell.setCellValue(userInput);
                                         filePath.createNewFile();
 
                                         FileInputStream fileInputStream = new FileInputStream(filePath);
@@ -184,7 +199,9 @@ public class ScannedDetails extends AppCompatActivity {
                                         fileOutputStream.close();
                                         clearAllValues(tl);
                                     }
-
+                                    if(csvCheckBox.isChecked()) {
+                                        convertXlsToCsv(filePath, csvFile);
+                                    }
 
                                 } catch (Exception e) {
                                     e.printStackTrace();
@@ -208,6 +225,57 @@ public class ScannedDetails extends AppCompatActivity {
 
             }
         });
+    }
+
+    public static void convertXlsToCsv(File xlsFile, File csvFile) {
+        try (InputStream fis = new FileInputStream(xlsFile)) {
+            // Create workbook depending on whether it's .xls or .xlsx
+            Workbook workbook = new HSSFWorkbook(fis);  // for .xls file
+
+
+            // Get the first sheet from the workbook
+            Sheet sheet = workbook.getSheetAt(0);
+
+            // Write to CSV
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(csvFile))) {
+                Iterator<Row> rowIterator = sheet.iterator();
+                while (rowIterator.hasNext()) {
+                    Row row = rowIterator.next();
+                    Iterator<Cell> cellIterator = row.iterator();
+                    StringBuilder rowData = new StringBuilder();
+                    while (cellIterator.hasNext()) {
+                        Cell cell = cellIterator.next();
+                        // Get the cell value as a string
+                        String cellValue = getCellValue(cell);
+                        // Append the value with a comma separator
+                        rowData.append(cellValue).append(",");
+                    }
+                    // Remove trailing comma and write row data to CSV file
+                    if (rowData.length() > 0) {
+                        rowData.setLength(rowData.length() - 1);
+                    }
+                    writer.write(rowData.toString());
+                    writer.newLine();
+                }
+            }
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static String getCellValue(Cell cell) {
+        switch (cell.getCellType()) {
+            case 1:
+                return cell.getStringCellValue();
+            case 0:
+                return String.valueOf(cell.getNumericCellValue());
+            case 4:
+                return String.valueOf(cell.getBooleanCellValue());
+            default:
+                return "";
+        }
     }
 
     private void clearAllValues(TableLayout tl) {
@@ -235,7 +303,6 @@ public class ScannedDetails extends AppCompatActivity {
         hssfRow.createCell(2).setCellValue("Net Weight");
 
         int lastRowNum = 1;
-        System.out.println("lastRowNum "+lastRowNum);
         for(int i=0;i<netWeights.size();i++){
             hssfRow = hssfSheet.createRow(lastRowNum+i);
 

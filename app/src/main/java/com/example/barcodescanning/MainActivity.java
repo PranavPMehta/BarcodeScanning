@@ -154,11 +154,14 @@ public class MainActivity extends AppCompatActivity {
                             if (barcodes.valueAt(0).email != null) {
                                 barcodeText.removeCallbacks(null);
                                 barcodeData = barcodes.valueAt(0).email.address;
+                                barcodeData=barcodeData.trim();
                                 barcodeText.setText(barcodeData);
+
                                 toneGen1.startTone(ToneGenerator.TONE_CDMA_PIP, 150);
                                 btnNext.setEnabled(true);
                             } else if (barcodes.valueAt(0).displayValue != null) {
                                 barcodeData = barcodes.valueAt(0).displayValue;
+                                barcodeData=barcodeData.trim();
                                 barcodeText.setText(barcodeData);
                                 toneGen1.startTone(ToneGenerator.TONE_CDMA_PIP, 150);
                                 btnNext.setEnabled(true);
